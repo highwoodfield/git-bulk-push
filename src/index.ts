@@ -42,7 +42,7 @@ async function main() {
 async function processRepo(repoPath: string) {
     process.chdir(repoPath);
     const status = await execute("git", ["status"]);
-    if (status.startsWith("On branch main\nYour branch is up to date with")) {
+    if (status.endsWith("nothing to commit, working tree clean\n")) {
         info(path.basename(repoPath) + ": UP TO DATE");
         return;
     }
