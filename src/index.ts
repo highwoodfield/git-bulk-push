@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { EOL } from "os";
 import * as fs from "fs/promises";
 import * as process from "process";
