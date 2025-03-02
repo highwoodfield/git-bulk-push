@@ -15,7 +15,7 @@ async function main() {
     for await (const p of lsDirs(path.resolve(process.cwd()))) {
         const isRepo = await isGitRepo(p);
         const not = isRepo ? " " : " NOT ";
-        info(`${path.basename(p)}\t... is${not}a git repo`);
+        info(`${path.basename(p)} ... is${not}a git repo`);
 
         if (isRepo) {
             try {
@@ -29,6 +29,11 @@ async function main() {
 
 async function processRepo(repoPath: string) {
     process.chdir(repoPath);
+    const status = await execute("git", ["status"]);
+    if (status.startsWith("On branch main\nYour branch is up to date with")) {
+        info(path.basename(repoPath) + ": UP TO DATE");
+        return;
+    }
     await execute("git", ["add", "."]);
     await execute("git", [
         "commit",
@@ -47,11 +52,12 @@ async function execute(file: string, args: string[]) {
         info(`${logPrefix}: ${file},${args.join(",")}`);
         const {stdout, stderr} = await execFile(file, args);
         if (stdout.length !== 0) {
-            info(logPrefix + ": STDOUT: " + EOL + stdout);
+            //info(logPrefix + ": STDOUT: " + EOL + stdout);
         }
         if (stderr.length !== 0) {
             err(logPrefix + ": STDERR: "  + EOL + stderr);
         }
+        return stdout;
     } catch (error) {
         throw error;
     }
