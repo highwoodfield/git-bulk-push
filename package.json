@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
+  "bin": {
+    "git-bulk-push": "dist/index.js"
+  },
   "scripts": {
     "build": "tsc",
     "run": "npm run build && node dist/index.js"
