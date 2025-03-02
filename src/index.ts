@@ -1,27 +1,39 @@
 #!/usr/bin/env node
-import { EOL } from "os";
+import * as os from "os";
 import * as fs from "fs/promises";
 import * as process from "process";
 import * as path from "path";
 import * as child_process from "child_process";
 import * as util from "util";
+import {EOL} from "node:os";
 
 const execFile = util.promisify(child_process.execFile)
 
 main().catch((err) => { console.error(err) });
 
+interface Settings {
+    targetPaths: string[];
+}
+
 async function main() {
     console.log("----- GIT-BULK-PUSH -----" + EOL);
-    for await (const p of lsDirs(path.resolve(process.cwd()))) {
-        const isRepo = await isGitRepo(p);
-        const not = isRepo ? " " : " NOT ";
-        info(`${path.basename(p)} ... is${not}a git repo`);
+    const settingsPath = path.join(os.homedir(), ".git-bulk-push.json");
+    const settings: Settings = JSON.parse((await fs.readFile(settingsPath)).toString());
 
-        if (isRepo) {
-            try {
-                await processRepo(p);
-            } catch (err) {
-                console.error(err);
+    for (const tgtPath of settings.targetPaths) {
+        info("Checking: " + tgtPath);
+
+        for await (const p of lsDirs(tgtPath)) {
+            const isRepo = await isGitRepo(p);
+            const not = isRepo ? " " : " NOT ";
+            info(`${path.basename(p)} ... is${not}a git repo`);
+
+            if (isRepo) {
+                try {
+                    await processRepo(p);
+                } catch (err) {
+                    console.error(err);
+                }
             }
         }
     }
