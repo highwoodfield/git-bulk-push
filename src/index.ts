@@ -17,37 +17,40 @@ async function main() {
         const not = isRepo ? " " : " NOT ";
         info(`${path.basename(p)}\t... is${not}a git repo`);
 
-        if (isRepo) await processRepo(p);
+        if (isRepo) {
+            try {
+                await processRepo(p);
+            } catch (err) {
+                console.error(err);
+            }
+        }
     }
 }
 
 async function processRepo(repoPath: string) {
     process.chdir(repoPath);
-    try {
-        await execute("git", ["add", "."]);
-        await execute("git", [
-            "commit",
-            "-m",
-            new Date().toLocaleString(),
-            "-m",
-            "by git-bulk-push",
-        ]);
-        await execute("git", ["push"]);
-    } catch (err) {
-        console.error(err);
-    }
+    await execute("git", ["add", "."]);
+    await execute("git", [
+        "commit",
+        "-m",
+        new Date().toLocaleString(),
+        "-m",
+        "by git-bulk-push",
+    ]);
+    await execute("git", ["push"]);
 }
 
 async function execute(file: string, args: string[]) {
+    const logPrefix = path.basename(process.cwd());
     try {
-        info("==================");
-        info(`${file},${args.join(",")}`);
+        info(logPrefix + ": ==================");
+        info(`${logPrefix}: ${file},${args.join(",")}`);
         const {stdout, stderr} = await execFile(file, args);
         if (stdout.length !== 0) {
-            info("STDOUT: " + EOL + stdout);
+            info(logPrefix + ": STDOUT: " + EOL + stdout);
         }
         if (stderr.length !== 0) {
-            err("STDERR: "  + EOL + stderr);
+            err(logPrefix + ": STDERR: "  + EOL + stderr);
         }
     } catch (error) {
         throw error;
