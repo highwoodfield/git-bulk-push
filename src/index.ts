@@ -12,7 +12,7 @@ main().catch((err) => { console.error(err) });
 
 async function main() {
     console.log("----- GIT-BULK-PUSH -----" + EOL);
-    for await (const p of lsDirs(path.resolve(process.cwd(), "../git-bulk-push-test"))) {
+    for await (const p of lsDirs(path.resolve(process.cwd()))) {
         const isRepo = await isGitRepo(p);
         const not = isRepo ? " " : " NOT ";
         info(`${path.basename(p)}\t... is${not}a git repo`);
