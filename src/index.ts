@@ -24,7 +24,6 @@ async function main() {
 async function processRepo(repoPath: string) {
     process.chdir(repoPath);
     try {
-        await execute("git", ["status"]);
         await execute("git", ["add", "."]);
         await execute("git", [
             "commit",
