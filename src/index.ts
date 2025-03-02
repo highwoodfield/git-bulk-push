@@ -67,7 +67,7 @@ async function execute(file: string, args: string[]) {
             //info(logPrefix + ": STDOUT: " + EOL + stdout);
         }
         if (stderr.length !== 0) {
-            err(logPrefix + ": STDERR: "  + EOL + stderr);
+            info(logPrefix + ": STDERR: "  + EOL + stderr);
         }
         return stdout;
     } catch (error) {
