@@ -22,8 +22,9 @@ async function main() {
 
     process.chdir(os.homedir());
 
+    const results: ProcessResult[] = [];
     for (const tgtPath of settings.targetPaths) {
-        info("Checking: " + tgtPath);
+        log("info", "Checking: " + tgtPath, false);
 
         for await (const p of lsDirs(tgtPath)) {
             const repo = new Repository(p);
@@ -33,13 +34,26 @@ async function main() {
 
             if (isRepo) {
                 try {
-                    await repo.processRepo();
+                    results.push(await repo.processRepo());
                 } catch (err) {
                     console.error(err);
                 }
             }
         }
     }
+
+    process.chdir(os.homedir());
+
+    log("info", "\nRESULTS:", false);
+    for (const result of results) {
+        log("info", `${result.repo.getName()}`, false);
+        log("info", `\tcommitted: ${convYN(result.committed)}`, false);
+        log("info", `\tpushed: ${convYN(result.pushed)}`, false);
+    }
+}
+
+function convYN(b: boolean) {
+    return b ? "YES" : "NO";
 }
 
 async function execute(file: string, args: string[]) {
@@ -94,9 +108,11 @@ function debug(message: string) {
 
 type LogLevel = "debug" | "info" | "warn" | "error";
 
-function log(level: LogLevel, message: string) {
-    const cwdName = path.basename(process.cwd());
-    info(`[${level}] ${cwdName}: ${message}`);
+function log(level: LogLevel, message: string, logCWD: boolean = true) {
+    const prefix = logCWD ? ` ${path.basename(process.cwd())}:` : "";
+    message.split("\n").forEach((line) => {
+        console.log(`[${level}]${prefix} ${line}`);
+    })
 }
 
 class Repository {
@@ -119,27 +135,45 @@ class Repository {
         return status.endsWith("nothing to commit, working tree clean\n");
     }
 
+    /**
+     * Returns true if one of remotes is not up-to-date
+     */
+    async push() {
+        const rawResult = await execute("git", ["push"]);
+        return rawResult.split("\n")
+            .find((value, idx) => {
+                return value !== "Everything up-to-date";
+            }) !== undefined;
+    }
+
     async processRepo() {
         process.chdir(this.path);
         const isCleanWT = await this.isCleanWorkingTree();
 
-        await execute("git", ["add", "."]);
-        await execute("git", [
-            "commit",
-            "-m",
-            new Date().toLocaleString(),
-            "-m",
-            "by git-bulk-push",
-        ]);
-        await execute("git", ["push"]);
+        if (!isCleanWT) {
+            await execute("git", ["add", "."]);
+            await execute("git", [
+                "commit",
+                "-m",
+                new Date().toLocaleString(),
+                "-m",
+                "by git-bulk-push",
+            ]);
+        }
+
+        const pushed = await this.push();
+
+        return new ProcessResult(this, pushed, !isCleanWT);
     }
 }
 
 class ProcessResult {
+    readonly repo: Repository;
     readonly pushed: boolean;
     readonly committed: boolean;
 
-    constructor(pushed: boolean, committed: boolean) {
+    constructor(repo: Repository, pushed: boolean, committed: boolean) {
+        this.repo = repo;
         this.pushed = pushed;
         this.committed = committed;
     }
