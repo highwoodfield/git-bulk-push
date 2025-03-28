@@ -48,10 +48,14 @@ async function execute(file: string, args: string[]) {
         info(`${file},${args.join(",")}`);
         const {stdout, stderr} = await execFile(file, args);
         if (stdout.length !== 0) {
-            info("STDOUT: " + EOL + stdout);
+            info("BEGIN STDOUT: =====");
+            stdout.split("\n").forEach((line) => { info(line); });
+            info("END STDOUT: =======")
         }
         if (stderr.length !== 0) {
-            info("STDERR: "  + EOL + stderr);
+            info("BEGIN STDERR: =====");
+            stderr.split("\n").forEach((line) => { info(line); });
+            info("END STDERR: =======")
         }
         return stdout;
     } catch (error) {
@@ -128,5 +132,15 @@ class Repository {
             "by git-bulk-push",
         ]);
         await execute("git", ["push"]);
+    }
+}
+
+class ProcessResult {
+    readonly pushed: boolean;
+    readonly committed: boolean;
+
+    constructor(pushed: boolean, committed: boolean) {
+        this.pushed = pushed;
+        this.committed = committed;
     }
 }
