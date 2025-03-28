@@ -27,10 +27,11 @@ async function main() {
         log("info", "Checking: " + tgtPath, false);
 
         for await (const p of lsDirs(tgtPath)) {
+            process.chdir(p);
             const repo = new Repository(p);
             const isRepo = await repo.isGitRepo();
             const not = isRepo ? "" : " NOT ";
-            info(`${not}a git repo`);
+            info(`is ${not}a git repo`);
 
             if (isRepo) {
                 try {
@@ -46,9 +47,11 @@ async function main() {
 
     log("info", "\nRESULTS:", false);
     for (const result of results) {
-        log("info", `${result.repo.getName()}`, false);
-        log("info", `\tcommitted: ${convYN(result.committed)}`, false);
-        log("info", `\tpushed: ${convYN(result.pushed)}`, false);
+        const actions: string[] = [];
+        if (result.committed) actions.push("committed");
+        if (result.pushed) actions.push("pushed");
+
+        log("info", `${result.repo.getName()}: ${actions.length === 0 ? "UP-TO-DATE" : actions.join(" & ")}`, false);
     }
 }
 
@@ -58,8 +61,7 @@ function convYN(b: boolean) {
 
 async function execute(file: string, args: string[]) {
     try {
-        info(": ==================");
-        info(`${file},${args.join(",")}`);
+        info(`\nEXEC: ${file},${args.join(",")} =====`);
         const {stdout, stderr} = await execFile(file, args);
         if (stdout.length !== 0) {
             info("BEGIN STDOUT: =====");
@@ -142,7 +144,7 @@ class Repository {
         const rawResult = await execute("git", ["push"]);
         return rawResult.split("\n")
             .find((value, idx) => {
-                return value !== "Everything up-to-date";
+                return value !== "" && value !== "Everything up-to-date";
             }) !== undefined;
     }
 
