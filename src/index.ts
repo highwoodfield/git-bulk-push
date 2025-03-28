@@ -24,37 +24,20 @@ async function main() {
         info("Checking: " + tgtPath);
 
         for await (const p of lsDirs(tgtPath)) {
-            const isRepo = await isGitRepo(p);
+            const repo = new Repository(p);
+            const isRepo = await repo.isGitRepo();
             const not = isRepo ? " " : " NOT ";
-            info(`${path.basename(p)} ... is${not}a git repo`);
+            repo.info(`is${not}a git repo`);
 
             if (isRepo) {
                 try {
-                    await processRepo(p);
+                    await repo.processRepo();
                 } catch (err) {
                     console.error(err);
                 }
             }
         }
     }
-}
-
-async function processRepo(repoPath: string) {
-    process.chdir(repoPath);
-    const status = await execute("git", ["status"]);
-    if (status.endsWith("nothing to commit, working tree clean\n")) {
-        info(path.basename(repoPath) + ": UP TO DATE");
-        return;
-    }
-    await execute("git", ["add", "."]);
-    await execute("git", [
-        "commit",
-        "-m",
-        new Date().toLocaleString(),
-        "-m",
-        "by git-bulk-push",
-    ]);
-    await execute("git", ["push"]);
 }
 
 async function execute(file: string, args: string[]) {
@@ -102,4 +85,42 @@ function info(message: string) {
 
 function debug(message: string) {
     console.debug("[DEBUG] " + message);
+}
+
+class Repository {
+    path: string;
+
+    constructor(path: string) {
+        this.path = path;
+    }
+
+    isGitRepo() {
+        return isGitRepo(this.path);
+    }
+
+    getName() {
+        return path.basename(this.path);
+    }
+
+    info(message: string) {
+        console.info(`[INFO] ${this.getName()}: ` + message);
+    }
+
+    async processRepo() {
+        process.chdir(this.path);
+        const status = await execute("git", ["status"]);
+        if (status.endsWith("nothing to commit, working tree clean\n")) {
+            info(path.basename(this.path) + ": UP TO DATE");
+            return;
+        }
+        await execute("git", ["add", "."]);
+        await execute("git", [
+            "commit",
+            "-m",
+            new Date().toLocaleString(),
+            "-m",
+            "by git-bulk-push",
+        ]);
+        await execute("git", ["push"]);
+    }
 }
