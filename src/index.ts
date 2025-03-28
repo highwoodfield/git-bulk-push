@@ -20,14 +20,16 @@ async function main() {
     const settingsPath = path.join(os.homedir(), ".git-bulk-push.json");
     const settings: Settings = JSON.parse((await fs.readFile(settingsPath)).toString());
 
+    process.chdir(os.homedir());
+
     for (const tgtPath of settings.targetPaths) {
         info("Checking: " + tgtPath);
 
         for await (const p of lsDirs(tgtPath)) {
             const repo = new Repository(p);
             const isRepo = await repo.isGitRepo();
-            const not = isRepo ? " " : " NOT ";
-            repo.info(`is${not}a git repo`);
+            const not = isRepo ? "" : " NOT ";
+            info(`${not}a git repo`);
 
             if (isRepo) {
                 try {
@@ -41,16 +43,15 @@ async function main() {
 }
 
 async function execute(file: string, args: string[]) {
-    const logPrefix = path.basename(process.cwd());
     try {
-        info(logPrefix + ": ==================");
-        info(`${logPrefix}: ${file},${args.join(",")}`);
+        info(": ==================");
+        info(`${file},${args.join(",")}`);
         const {stdout, stderr} = await execFile(file, args);
         if (stdout.length !== 0) {
-            //info(logPrefix + ": STDOUT: " + EOL + stdout);
+            info("STDOUT: " + EOL + stdout);
         }
         if (stderr.length !== 0) {
-            info(logPrefix + ": STDERR: "  + EOL + stderr);
+            info("STDERR: "  + EOL + stderr);
         }
         return stdout;
     } catch (error) {
@@ -76,15 +77,22 @@ async function* lsDirs(tgtDir: string) {
 }
 
 function err(message: string) {
-    console.error("[ERROR] " + message);
+    log("error", message);
 }
 
 function info(message: string) {
-    console.info("[INFO] " + message);
+    log("info", message);
 }
 
 function debug(message: string) {
-    console.debug("[DEBUG] " + message);
+    log("debug", message);
+}
+
+type LogLevel = "debug" | "info" | "warn" | "error";
+
+function log(level: LogLevel, message: string) {
+    const cwdName = path.basename(process.cwd());
+    info(`[${level}] ${cwdName}: ${message}`);
 }
 
 class Repository {
@@ -102,17 +110,15 @@ class Repository {
         return path.basename(this.path);
     }
 
-    info(message: string) {
-        console.info(`[INFO] ${this.getName()}: ` + message);
+    async isCleanWorkingTree() {
+        const status = await execute("git", ["status"]);
+        return status.endsWith("nothing to commit, working tree clean\n");
     }
 
     async processRepo() {
         process.chdir(this.path);
-        const status = await execute("git", ["status"]);
-        if (status.endsWith("nothing to commit, working tree clean\n")) {
-            info(path.basename(this.path) + ": UP TO DATE");
-            return;
-        }
+        const isCleanWT = await this.isCleanWorkingTree();
+
         await execute("git", ["add", "."]);
         await execute("git", [
             "commit",
