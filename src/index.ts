@@ -10,13 +10,11 @@ import * as output_parser from "./git_output_parser.js";
 
 const execFile = util.promisify(child_process.execFile)
 
-main().catch((err) => { console.error(err) });
-
 interface Settings {
     targetPaths: string[];
 }
 
-async function main() {
+export async function main() {
     console.log("----- GIT-BULK-PUSH -----" + EOL);
     const settingsPath = path.join(os.homedir(), ".git-bulk-push.json");
     const settings: Settings = JSON.parse((await fs.readFile(settingsPath)).toString());

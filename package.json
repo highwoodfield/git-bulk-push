@@ -2,14 +2,14 @@
   "name": "git-bulk-push",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/index.js",
+  "main": "dist/main.js",
   "type": "module",
   "bin": {
-    "git-bulk-push": "dist/index.js"
+    "git-bulk-push": "dist/main.js"
   },
   "scripts": {
     "build": "tsc",
-    "run": "npm run build && node dist/index.js",
+    "run": "npm run build && node dist/main.js",
     "test": "npm run build && node dist/test.js"
   },
   "devDependencies": {
