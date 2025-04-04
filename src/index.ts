@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import * as os from "os";
 import * as fs from "fs/promises";
 import * as process from "process";
