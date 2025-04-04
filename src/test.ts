@@ -80,8 +80,8 @@ const results: index.ProcessResult[] = [
     new ProcessResult(new Repository("RepoD"), true, true),
 ];
 deepStrictEqual(index.genResult(results[0]), "RepoA: UP-TO-DATE");
-deepStrictEqual(index.genResult(results[1]), "RepoB: pushed");
-deepStrictEqual(index.genResult(results[2]), "RepoC: committed");
-deepStrictEqual(index.genResult(results[3]), "RepoD: committed & pushed");
+deepStrictEqual(index.genResult(results[1]), "RepoB: PUSHED");
+deepStrictEqual(index.genResult(results[2]), "RepoC: COMMITTED");
+deepStrictEqual(index.genResult(results[3]), "RepoD: COMMITTED & PUSHED");
 
 console.log("Tests have been finished")

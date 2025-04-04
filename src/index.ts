@@ -52,8 +52,8 @@ export async function main() {
 
 export function genResult(result: ProcessResult): string {
     const actions: string[] = [];
-    if (result.committed) actions.push("committed");
-    if (result.pushed) actions.push("pushed");
+    if (result.committed) actions.push("COMMITTED");
+    if (result.pushed) actions.push("PUSHED");
 
     return `${result.repo.getName()}: ${actions.length === 0 ? "UP-TO-DATE" : actions.join(" & ")}`;
 }
