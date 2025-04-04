@@ -62,7 +62,12 @@ function convYN(b: boolean) {
     return b ? "YES" : "NO";
 }
 
-async function execute(file: string, args: string[]) {
+interface Output {
+    stdout: string;
+    stderr: string;
+}
+
+async function execute(file: string, args: string[]): Promise<Output> {
     try {
         info(`\nEXEC: ${file},${args.join(",")} =====`);
         const {stdout, stderr} = await execFile(file, args);
@@ -76,7 +81,7 @@ async function execute(file: string, args: string[]) {
             stderr.split("\n").forEach((line) => { info(line); });
             info("END STDERR: =======")
         }
-        return stdout;
+        return {stdout, stderr};
     } catch (error) {
         throw error;
     }
@@ -137,7 +142,7 @@ export class Repository {
 
     async isCleanWorkingTree() {
         const status = await execute("git", ["status"]);
-        return output_parser.isCleanWorkingTree(status);
+        return output_parser.isCleanWorkingTree(status.stdout);
     }
 
     /**
@@ -145,7 +150,7 @@ export class Repository {
      */
     async push() {
         const rawResult = await execute("git", ["push"]);
-        return output_parser.didPush(rawResult);
+        return output_parser.didPush(rawResult.stderr);
     }
 
     async processRepo() {
