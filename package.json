@@ -9,7 +9,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "run": "npm run build && node dist/index.js"
+    "run": "npm run build && node dist/index.js",
+    "test": "npm run build && node dist/test.js"
   },
   "devDependencies": {
     "@types/node": "^22.13.8",

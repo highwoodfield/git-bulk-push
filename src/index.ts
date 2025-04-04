@@ -6,6 +6,7 @@ import * as path from "path";
 import * as child_process from "child_process";
 import * as util from "util";
 import {EOL} from "node:os";
+import * as output_parser from "./git_output_parser.js";
 
 const execFile = util.promisify(child_process.execFile)
 
@@ -134,7 +135,7 @@ class Repository {
 
     async isCleanWorkingTree() {
         const status = await execute("git", ["status"]);
-        return status.endsWith("nothing to commit, working tree clean\n");
+        return output_parser.isCleanWorkingTree(status);
     }
 
     /**
@@ -142,10 +143,7 @@ class Repository {
      */
     async push() {
         const rawResult = await execute("git", ["push"]);
-        return rawResult.split("\n")
-            .find((value, idx) => {
-                return value !== "" && value !== "Everything up-to-date";
-            }) !== undefined;
+        return output_parser.didPush(rawResult);
     }
 
     async processRepo() {
