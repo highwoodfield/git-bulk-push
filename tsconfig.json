@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "incremental": true,
     "target": "ES6",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
