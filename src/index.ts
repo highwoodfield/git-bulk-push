@@ -48,12 +48,16 @@ async function main() {
 
     log("info", "\nRESULTS:", false);
     for (const result of results) {
-        const actions: string[] = [];
-        if (result.committed) actions.push("committed");
-        if (result.pushed) actions.push("pushed");
-
-        log("info", `${result.repo.getName()}: ${actions.length === 0 ? "UP-TO-DATE" : actions.join(" & ")}`, false);
+        log("info", genResult(result), false);
     }
+}
+
+export function genResult(result: ProcessResult): string {
+    const actions: string[] = [];
+    if (result.committed) actions.push("committed");
+    if (result.pushed) actions.push("pushed");
+
+    return `${result.repo.getName()}: ${actions.length === 0 ? "UP-TO-DATE" : actions.join(" & ")}`;
 }
 
 function convYN(b: boolean) {
@@ -118,7 +122,7 @@ function log(level: LogLevel, message: string, logCWD: boolean = true) {
     })
 }
 
-class Repository {
+export class Repository {
     path: string;
 
     constructor(path: string) {
@@ -167,7 +171,7 @@ class Repository {
     }
 }
 
-class ProcessResult {
+export class ProcessResult {
     readonly repo: Repository;
     readonly pushed: boolean;
     readonly committed: boolean;

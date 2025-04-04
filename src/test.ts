@@ -1,6 +1,8 @@
 import * as assert from "assert";
 import {deepStrictEqual} from "node:assert";
 import * as parser from "./git_output_parser.js"
+import * as index from "./index.js";
+import {ProcessResult, Repository} from "./index.js";
 
 console.log("Testing: isCleanWorkTree");
 
@@ -68,5 +70,18 @@ To https://example.com
 deepStrictEqual(parser.didPush(push_none), false);
 deepStrictEqual(parser.didPush(push_all), true);
 deepStrictEqual(parser.didPush(push_some), true);
+
+console.log("Testing: printResults");
+
+const results: index.ProcessResult[] = [
+    new ProcessResult(new Repository("RepoA"), false, false),
+    new ProcessResult(new Repository("RepoB"), true, false),
+    new ProcessResult(new Repository("RepoC"), false, true),
+    new ProcessResult(new Repository("RepoD"), true, true),
+];
+deepStrictEqual(index.genResult(results[0]), "RepoA: UP-TO-DATE");
+deepStrictEqual(index.genResult(results[1]), "RepoB: pushed");
+deepStrictEqual(index.genResult(results[2]), "RepoC: committed");
+deepStrictEqual(index.genResult(results[3]), "RepoD: committed & pushed");
 
 console.log("Tests have been finished")
